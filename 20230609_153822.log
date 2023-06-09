@@ -1,0 +1,1409 @@
+2023/06/09 15:38:28 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: win32
+    Python: 3.8.12 (default, Oct 12 2021, 03:01:40) [MSC v.1916 64 bit (AMD64)]
+    CUDA available: True
+    numpy_random_seed: 1200186001
+    GPU 0: NVIDIA GeForce RTX 2080 Ti
+    CUDA_HOME: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1
+    NVCC: Cuda compilation tools, release 11.1, V11.1.74
+    MSVC: 用于 x64 的 Microsoft (R) C/C++ 优化编译器 19.29.30143 版
+    GCC: n/a
+    PyTorch: 1.9.1+cu111
+    PyTorch compiling details: PyTorch built with:
+  - C++ Version: 199711
+  - MSVC 192829337
+  - Intel(R) Math Kernel Library Version 2020.0.2 Product Build 20200624 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.1.2 (Git Hash 98be7e8afa711dc9b66c8ff3504129cb82013cdb)
+  - OpenMP 2019
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.0.5
+  - Magma 2.5.4
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=C:/w/b/windows/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /GR /EHsc /w /bigobj -DUSE_PTHREADPOOL -openmp:experimental -IC:/w/b/windows/mkl/include -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOCUPTI -DUSE_FBGEMM -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.9.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, 
+
+    TorchVision: 0.10.1+cu111
+    OpenCV: 4.7.0
+    MMEngine: 0.7.1
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: None
+    deterministic: False
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2023/06/09 15:38:28 - mmengine - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(type='EfficientNetV2', arch='b3'),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=30,
+        in_channels=1536,
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=(1, 5)),
+    init_cfg=dict(
+        type='Pretrained',
+        checkpoint=
+        'https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth'
+    ))
+dataset_type = 'CustomDataset'
+data_preprocessor = dict(
+    num_classes=1000,
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='EfficientNetRandomCrop', scale=240),
+    dict(type='RandomFlip', prob=0.5, direction='horizontal'),
+    dict(type='PackInputs')
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='EfficientNetCenterCrop', crop_size=300, crop_padding=0),
+    dict(type='PackInputs')
+]
+train_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/fruit/training_set',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='EfficientNetRandomCrop', scale=240),
+            dict(type='RandomFlip', prob=0.5, direction='horizontal'),
+            dict(type='PackInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=True))
+val_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/fruit/val_set',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='EfficientNetCenterCrop', crop_size=300, crop_padding=0),
+            dict(type='PackInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=False))
+val_evaluator = dict(type='Accuracy', topk=(1, 5))
+test_dataloader = dict(
+    pin_memory=True,
+    persistent_workers=True,
+    collate_fn=dict(type='default_collate'),
+    batch_size=32,
+    num_workers=5,
+    dataset=dict(
+        type='CustomDataset',
+        data_root='data/fruit/val_set',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='EfficientNetCenterCrop', crop_size=300, crop_padding=0),
+            dict(type='PackInputs')
+        ]),
+    sampler=dict(type='DefaultSampler', shuffle=False))
+test_evaluator = dict(type='Accuracy', topk=(1, 5))
+optim_wrapper = dict(
+    optimizer=dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001))
+param_scheduler = dict(
+    type='MultiStepLR', by_epoch=True, milestones=[30, 60, 90], gamma=0.1)
+train_cfg = dict(by_epoch=True, max_epochs=100, val_interval=1)
+val_cfg = dict()
+test_cfg = dict()
+auto_scale_lr = dict(base_batch_size=256)
+default_scope = 'mmpretrain'
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=100),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(
+        type='CheckpointHook', interval=1, max_keep_ckpts=5, save_best='auto'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='VisualizationHook', enable=False))
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'))
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='UniversalVisualizer', vis_backends=[dict(type='LocalVisBackend')])
+log_level = 'INFO'
+load_from = None
+resume = False
+randomness = dict(seed=None, deterministic=False)
+bgr_mean = [103.53, 116.28, 123.675]
+bgr_std = [57.375, 57.12, 58.395]
+launcher = 'none'
+work_dir = './work_dirs\\efficientnetv2-b3_8xb32_in1k'
+
+2023/06/09 15:38:32 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2023/06/09 15:38:32 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train:
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2023/06/09 15:38:34 - mmengine - INFO - load model from: https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth
+2023/06/09 15:38:34 - mmengine - INFO - Loads checkpoint by http backend from path: https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth
+2023/06/09 15:38:41 - mmengine - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for head.fc.weight: copying a param with shape torch.Size([1000, 1536]) from checkpoint, the shape in current model is torch.Size([30, 1536]).
+size mismatch for head.fc.bias: copying a param with shape torch.Size([1000]) from checkpoint, the shape in current model is torch.Size([30]).
+Name of parameter - Initialization information
+
+backbone.layers.0.conv.weight - torch.Size([40, 3, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.0.bn.weight - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.0.bn.bias - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.0.conv.weight - torch.Size([16, 40, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.0.bn.weight - torch.Size([16]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.0.bn.bias - torch.Size([16]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.1.conv.weight - torch.Size([16, 16, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.1.bn.weight - torch.Size([16]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.1.1.bn.bias - torch.Size([16]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv1.conv.weight - torch.Size([64, 16, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv1.bn.weight - torch.Size([64]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv1.bn.bias - torch.Size([64]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv2.conv.weight - torch.Size([40, 64, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv2.bn.weight - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.0.conv2.bn.bias - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv1.conv.weight - torch.Size([160, 40, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv1.bn.weight - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv1.bn.bias - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv2.conv.weight - torch.Size([40, 160, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv2.bn.weight - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.1.conv2.bn.bias - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv1.conv.weight - torch.Size([160, 40, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv1.bn.weight - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv1.bn.bias - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv2.conv.weight - torch.Size([40, 160, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv2.bn.weight - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.2.2.conv2.bn.bias - torch.Size([40]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv1.conv.weight - torch.Size([160, 40, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv1.bn.weight - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv1.bn.bias - torch.Size([160]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv2.conv.weight - torch.Size([56, 160, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv2.bn.weight - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.0.conv2.bn.bias - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv1.conv.weight - torch.Size([224, 56, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv1.bn.weight - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv1.bn.bias - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv2.conv.weight - torch.Size([56, 224, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv2.bn.weight - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.1.conv2.bn.bias - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv1.conv.weight - torch.Size([224, 56, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv1.bn.weight - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv1.bn.bias - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv2.conv.weight - torch.Size([56, 224, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv2.bn.weight - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.3.2.conv2.bn.bias - torch.Size([56]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.expand_conv.conv.weight - torch.Size([224, 56, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.expand_conv.bn.weight - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.expand_conv.bn.bias - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.depthwise_conv.conv.weight - torch.Size([224, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.depthwise_conv.bn.weight - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.depthwise_conv.bn.bias - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.se.conv1.conv.weight - torch.Size([14, 224, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.se.conv1.conv.bias - torch.Size([14]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.se.conv2.conv.weight - torch.Size([224, 14, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.se.conv2.conv.bias - torch.Size([224]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.linear_conv.conv.weight - torch.Size([112, 224, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.linear_conv.bn.weight - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.0.linear_conv.bn.bias - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.expand_conv.conv.weight - torch.Size([448, 112, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.expand_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.expand_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.depthwise_conv.conv.weight - torch.Size([448, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.depthwise_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.depthwise_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.se.conv1.conv.weight - torch.Size([28, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.se.conv1.conv.bias - torch.Size([28]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.se.conv2.conv.weight - torch.Size([448, 28, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.se.conv2.conv.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.linear_conv.conv.weight - torch.Size([112, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.linear_conv.bn.weight - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.1.linear_conv.bn.bias - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.expand_conv.conv.weight - torch.Size([448, 112, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.expand_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.expand_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.depthwise_conv.conv.weight - torch.Size([448, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.depthwise_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.depthwise_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.se.conv1.conv.weight - torch.Size([28, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.se.conv1.conv.bias - torch.Size([28]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.se.conv2.conv.weight - torch.Size([448, 28, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.se.conv2.conv.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.linear_conv.conv.weight - torch.Size([112, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.linear_conv.bn.weight - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.2.linear_conv.bn.bias - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.expand_conv.conv.weight - torch.Size([448, 112, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.expand_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.expand_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.depthwise_conv.conv.weight - torch.Size([448, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.depthwise_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.depthwise_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.se.conv1.conv.weight - torch.Size([28, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.se.conv1.conv.bias - torch.Size([28]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.se.conv2.conv.weight - torch.Size([448, 28, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.se.conv2.conv.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.linear_conv.conv.weight - torch.Size([112, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.linear_conv.bn.weight - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.3.linear_conv.bn.bias - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.expand_conv.conv.weight - torch.Size([448, 112, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.expand_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.expand_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.depthwise_conv.conv.weight - torch.Size([448, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.depthwise_conv.bn.weight - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.depthwise_conv.bn.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.se.conv1.conv.weight - torch.Size([28, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.se.conv1.conv.bias - torch.Size([28]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.se.conv2.conv.weight - torch.Size([448, 28, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.se.conv2.conv.bias - torch.Size([448]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.linear_conv.conv.weight - torch.Size([112, 448, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.linear_conv.bn.weight - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.4.4.linear_conv.bn.bias - torch.Size([112]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.expand_conv.conv.weight - torch.Size([672, 112, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.expand_conv.bn.weight - torch.Size([672]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.expand_conv.bn.bias - torch.Size([672]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.depthwise_conv.conv.weight - torch.Size([672, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.depthwise_conv.bn.weight - torch.Size([672]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.depthwise_conv.bn.bias - torch.Size([672]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.se.conv1.conv.weight - torch.Size([28, 672, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.se.conv1.conv.bias - torch.Size([28]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.se.conv2.conv.weight - torch.Size([672, 28, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.se.conv2.conv.bias - torch.Size([672]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.linear_conv.conv.weight - torch.Size([136, 672, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.0.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.1.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.2.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.3.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.4.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.5.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.linear_conv.conv.weight - torch.Size([136, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.linear_conv.bn.weight - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.5.6.linear_conv.bn.bias - torch.Size([136]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.expand_conv.conv.weight - torch.Size([816, 136, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.expand_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.expand_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.depthwise_conv.conv.weight - torch.Size([816, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.depthwise_conv.bn.weight - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.depthwise_conv.bn.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.se.conv1.conv.weight - torch.Size([34, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.se.conv1.conv.bias - torch.Size([34]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.se.conv2.conv.weight - torch.Size([816, 34, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.se.conv2.conv.bias - torch.Size([816]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.linear_conv.conv.weight - torch.Size([232, 816, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.0.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.1.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.2.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.3.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.4.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.5.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.6.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.7.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.8.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.9.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.10.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.expand_conv.conv.weight - torch.Size([1392, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.expand_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.expand_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.depthwise_conv.conv.weight - torch.Size([1392, 1, 3, 3]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.depthwise_conv.bn.weight - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.depthwise_conv.bn.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.se.conv1.conv.weight - torch.Size([58, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.se.conv1.conv.bias - torch.Size([58]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.se.conv2.conv.weight - torch.Size([1392, 58, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.se.conv2.conv.bias - torch.Size([1392]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.linear_conv.conv.weight - torch.Size([232, 1392, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.linear_conv.bn.weight - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.6.11.linear_conv.bn.bias - torch.Size([232]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.7.conv.weight - torch.Size([1536, 232, 1, 1]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.7.bn.weight - torch.Size([1536]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+backbone.layers.7.bn.bias - torch.Size([1536]): 
+PretrainedInit: load from https://download.openmmlab.com/mmclassification/v0/efficientnetv2/efficientnetv2-b3_3rdparty_in1k_20221221-b6f07a36.pth 
+
+head.fc.weight - torch.Size([30, 1536]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+head.fc.bias - torch.Size([30]): 
+NormalInit: mean=0, std=0.01, bias=0 
+2023/06/09 15:38:41 - mmengine - WARNING - "FileClient" will be deprecated in future. Please use io functions in https://mmengine.readthedocs.io/en/latest/api/fileio.html#file-io
+2023/06/09 15:38:41 - mmengine - WARNING - "HardDiskBackend" is the alias of "LocalBackend" and the former will be deprecated in future.
+2023/06/09 15:38:41 - mmengine - INFO - Checkpoints will be saved to D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k.
+2023/06/09 15:39:12 - mmengine - INFO - Epoch(train)   [1][100/110]  lr: 1.0000e-01  eta: 0:56:08  time: 0.2130  data_time: 0.0007  memory: 5163  loss: 2.0908
+2023/06/09 15:39:14 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:39:14 - mmengine - INFO - Saving checkpoint at 1 epochs
+2023/06/09 15:39:26 - mmengine - INFO - Epoch(val) [1][27/27]  accuracy/top1: 35.1508  accuracy/top5: 74.0139  data_time: 0.0002  time: 0.0906
+2023/06/09 15:39:27 - mmengine - INFO - The best checkpoint with 35.1508 accuracy/top1 at 1 epoch is saved to best_accuracy/top1_epoch_1.pth.
+2023/06/09 15:39:48 - mmengine - INFO - Epoch(train)   [2][100/110]  lr: 1.0000e-01  eta: 0:46:37  time: 0.2029  data_time: 0.0004  memory: 5163  loss: 1.4873
+2023/06/09 15:39:50 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:39:50 - mmengine - INFO - Saving checkpoint at 2 epochs
+2023/06/09 15:39:54 - mmengine - INFO - Epoch(val) [2][27/27]  accuracy/top1: 64.3851  accuracy/top5: 92.1114  data_time: 0.0000  time: 0.0765
+2023/06/09 15:39:54 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_1.pth is removed
+2023/06/09 15:39:55 - mmengine - INFO - The best checkpoint with 64.3851 accuracy/top1 at 2 epoch is saved to best_accuracy/top1_epoch_2.pth.
+2023/06/09 15:40:15 - mmengine - INFO - Epoch(train)   [3][100/110]  lr: 1.0000e-01  eta: 0:42:49  time: 0.1991  data_time: 0.0002  memory: 5163  loss: 1.0807
+2023/06/09 15:40:17 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:40:17 - mmengine - INFO - Saving checkpoint at 3 epochs
+2023/06/09 15:40:21 - mmengine - INFO - Epoch(val) [3][27/27]  accuracy/top1: 63.4571  accuracy/top5: 91.0673  data_time: 0.0005  time: 0.0844
+2023/06/09 15:40:42 - mmengine - INFO - Epoch(train)   [4][100/110]  lr: 1.0000e-01  eta: 0:40:51  time: 0.1993  data_time: 0.0006  memory: 5163  loss: 1.1015
+2023/06/09 15:40:44 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:40:44 - mmengine - INFO - Saving checkpoint at 4 epochs
+2023/06/09 15:40:47 - mmengine - INFO - Epoch(val) [4][27/27]  accuracy/top1: 76.5661  accuracy/top5: 95.5916  data_time: 0.0002  time: 0.0784
+2023/06/09 15:40:47 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_2.pth is removed
+2023/06/09 15:40:48 - mmengine - INFO - The best checkpoint with 76.5661 accuracy/top1 at 4 epoch is saved to best_accuracy/top1_epoch_4.pth.
+2023/06/09 15:41:09 - mmengine - INFO - Epoch(train)   [5][100/110]  lr: 1.0000e-01  eta: 0:39:34  time: 0.2043  data_time: 0.0007  memory: 5163  loss: 0.9068
+2023/06/09 15:41:11 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:41:11 - mmengine - INFO - Saving checkpoint at 5 epochs
+2023/06/09 15:41:15 - mmengine - INFO - Epoch(val) [5][27/27]  accuracy/top1: 78.5383  accuracy/top5: 95.7077  data_time: 0.0004  time: 0.0780
+2023/06/09 15:41:15 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_4.pth is removed
+2023/06/09 15:41:16 - mmengine - INFO - The best checkpoint with 78.5383 accuracy/top1 at 5 epoch is saved to best_accuracy/top1_epoch_5.pth.
+2023/06/09 15:41:37 - mmengine - INFO - Epoch(train)   [6][100/110]  lr: 1.0000e-01  eta: 0:38:35  time: 0.2048  data_time: 0.0006  memory: 5163  loss: 0.7028
+2023/06/09 15:41:39 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:41:39 - mmengine - INFO - Saving checkpoint at 6 epochs
+2023/06/09 15:41:42 - mmengine - INFO - Epoch(val) [6][27/27]  accuracy/top1: 79.8144  accuracy/top5: 96.2877  data_time: 0.0002  time: 0.0761
+2023/06/09 15:41:42 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_5.pth is removed
+2023/06/09 15:41:43 - mmengine - INFO - The best checkpoint with 79.8144 accuracy/top1 at 6 epoch is saved to best_accuracy/top1_epoch_6.pth.
+2023/06/09 15:42:06 - mmengine - INFO - Epoch(train)   [7][100/110]  lr: 1.0000e-01  eta: 0:38:15  time: 0.2098  data_time: 0.0007  memory: 5163  loss: 0.7673
+2023/06/09 15:42:08 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:42:08 - mmengine - INFO - Saving checkpoint at 7 epochs
+2023/06/09 15:42:12 - mmengine - INFO - Epoch(val) [7][27/27]  accuracy/top1: 77.2622  accuracy/top5: 96.5197  data_time: 0.0002  time: 0.0800
+2023/06/09 15:42:34 - mmengine - INFO - Epoch(train)   [8][100/110]  lr: 1.0000e-01  eta: 0:37:50  time: 0.2222  data_time: 0.0010  memory: 5163  loss: 0.6175
+2023/06/09 15:42:36 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:42:36 - mmengine - INFO - Saving checkpoint at 8 epochs
+2023/06/09 15:42:40 - mmengine - INFO - Epoch(val) [8][27/27]  accuracy/top1: 83.1787  accuracy/top5: 96.2877  data_time: 0.0001  time: 0.0839
+2023/06/09 15:42:40 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_6.pth is removed
+2023/06/09 15:42:41 - mmengine - INFO - The best checkpoint with 83.1787 accuracy/top1 at 8 epoch is saved to best_accuracy/top1_epoch_8.pth.
+2023/06/09 15:43:02 - mmengine - INFO - Epoch(train)   [9][100/110]  lr: 1.0000e-01  eta: 0:37:07  time: 0.1933  data_time: 0.0003  memory: 5163  loss: 0.5318
+2023/06/09 15:43:04 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:43:04 - mmengine - INFO - Saving checkpoint at 9 epochs
+2023/06/09 15:43:07 - mmengine - INFO - Epoch(val) [9][27/27]  accuracy/top1: 79.4664  accuracy/top5: 96.4037  data_time: 0.0006  time: 0.0839
+2023/06/09 15:43:10 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:43:29 - mmengine - INFO - Epoch(train)  [10][100/110]  lr: 1.0000e-01  eta: 0:36:34  time: 0.2196  data_time: 0.0005  memory: 5163  loss: 0.6468
+2023/06/09 15:43:31 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:43:31 - mmengine - INFO - Saving checkpoint at 10 epochs
+2023/06/09 15:43:35 - mmengine - INFO - Epoch(val) [10][27/27]  accuracy/top1: 84.1067  accuracy/top5: 97.6798  data_time: 0.0003  time: 0.0826
+2023/06/09 15:43:35 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_8.pth is removed
+2023/06/09 15:43:36 - mmengine - INFO - The best checkpoint with 84.1067 accuracy/top1 at 10 epoch is saved to best_accuracy/top1_epoch_10.pth.
+2023/06/09 15:43:58 - mmengine - INFO - Epoch(train)  [11][100/110]  lr: 1.0000e-01  eta: 0:36:04  time: 0.2150  data_time: 0.0005  memory: 5163  loss: 0.5445
+2023/06/09 15:44:00 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:44:00 - mmengine - INFO - Saving checkpoint at 11 epochs
+2023/06/09 15:44:03 - mmengine - INFO - Epoch(val) [11][27/27]  accuracy/top1: 85.2668  accuracy/top5: 97.0998  data_time: 0.0001  time: 0.0791
+2023/06/09 15:44:03 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_10.pth is removed
+2023/06/09 15:44:04 - mmengine - INFO - The best checkpoint with 85.2668 accuracy/top1 at 11 epoch is saved to best_accuracy/top1_epoch_11.pth.
+2023/06/09 15:44:26 - mmengine - INFO - Epoch(train)  [12][100/110]  lr: 1.0000e-01  eta: 0:35:39  time: 0.2057  data_time: 0.0007  memory: 5163  loss: 0.5584
+2023/06/09 15:44:28 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:44:28 - mmengine - INFO - Saving checkpoint at 12 epochs
+2023/06/09 15:44:33 - mmengine - INFO - Epoch(val) [12][27/27]  accuracy/top1: 84.8028  accuracy/top5: 97.3318  data_time: 0.0003  time: 0.0944
+2023/06/09 15:44:57 - mmengine - INFO - Epoch(train)  [13][100/110]  lr: 1.0000e-01  eta: 0:35:27  time: 0.2037  data_time: 0.0003  memory: 5163  loss: 0.5050
+2023/06/09 15:44:59 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:44:59 - mmengine - INFO - Saving checkpoint at 13 epochs
+2023/06/09 15:45:02 - mmengine - INFO - Epoch(val) [13][27/27]  accuracy/top1: 82.8306  accuracy/top5: 96.9838  data_time: 0.0002  time: 0.0807
+2023/06/09 15:45:26 - mmengine - INFO - Epoch(train)  [14][100/110]  lr: 1.0000e-01  eta: 0:35:09  time: 0.2249  data_time: 0.0008  memory: 5163  loss: 0.5489
+2023/06/09 15:45:28 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:45:28 - mmengine - INFO - Saving checkpoint at 14 epochs
+2023/06/09 15:45:32 - mmengine - INFO - Epoch(val) [14][27/27]  accuracy/top1: 86.0789  accuracy/top5: 97.4478  data_time: 0.0001  time: 0.0918
+2023/06/09 15:45:32 - mmengine - INFO - The previous best checkpoint D:\DeepNetwork\mmpretrain\work_dirs\efficientnetv2-b3_8xb32_in1k\best_accuracy/top1_epoch_11.pth is removed
+2023/06/09 15:45:33 - mmengine - INFO - The best checkpoint with 86.0789 accuracy/top1 at 14 epoch is saved to best_accuracy/top1_epoch_14.pth.
+2023/06/09 15:46:06 - mmengine - INFO - Epoch(train)  [15][100/110]  lr: 1.0000e-01  eta: 0:35:48  time: 0.5110  data_time: 0.0006  memory: 5163  loss: 0.4988
+2023/06/09 15:46:11 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:46:11 - mmengine - INFO - Saving checkpoint at 15 epochs
+2023/06/09 15:46:19 - mmengine - INFO - Epoch(val) [15][27/27]  accuracy/top1: 85.8469  accuracy/top5: 97.4478  data_time: 0.0002  time: 0.2238
+2023/06/09 15:47:05 - mmengine - INFO - Epoch(train)  [16][100/110]  lr: 1.0000e-01  eta: 0:37:37  time: 0.3620  data_time: 0.0009  memory: 5163  loss: 0.3766
+2023/06/09 15:47:09 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:47:09 - mmengine - INFO - Saving checkpoint at 16 epochs
+2023/06/09 15:47:17 - mmengine - INFO - Epoch(val) [16][27/27]  accuracy/top1: 85.6148  accuracy/top5: 96.9838  data_time: 0.0002  time: 0.0749
+2023/06/09 15:48:05 - mmengine - INFO - Epoch(train)  [17][100/110]  lr: 1.0000e-01  eta: 0:39:16  time: 0.3351  data_time: 0.0007  memory: 5163  loss: 0.3917
+2023/06/09 15:48:10 - mmengine - INFO - Exp name: efficientnetv2-b3_8xb32_in1k_20230609_153822
+2023/06/09 15:48:10 - mmengine - INFO - Saving checkpoint at 17 epochs
+2023/06/09 15:48:18 - mmengine - INFO - Epoch(val) [17][27/27]  accuracy/top1: 85.2668  accuracy/top5: 97.0998  data_time: 0.0002  time: 0.2288
